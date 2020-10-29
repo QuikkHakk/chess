@@ -73,12 +73,22 @@
                         ctx.fillStyle = "#769656";
                     }
                     ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);            
+                    let tile_at = board[x + y * 8];
+                    if (tile_at != 0) {
+                        ctx.drawImage(
+                            images[tile_at],
+                            x * TILE_SIZE,
+                            y * TILE_SIZE,
+                            TILE_SIZE,
+                            TILE_SIZE
+                        );
+                    }
                 }
             }
         }
 
         socket.on("update-board", (data) => {
-            console.log(data.board);
+            board = data.board;
         });
 
         socket.on("set-color", (color) => {

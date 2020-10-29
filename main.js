@@ -3,6 +3,19 @@ const app = express();
 const http = require("http").createServer(app);
 const io = require("socket.io")(http);
 
+const WHITE_KING = 1;
+const BLACK_KING = 2;
+const WHITE_QUEEN = 3;
+const BLACK_QUEEN = 4;
+const WHITE_BISHOP = 5;
+const BLACK_BISHOP = 6;
+const WHITE_KNIGHT = 7;
+const BLACK_KNIGHT = 8;
+const WHITE_ROOK = 9;
+const BLACK_ROOK = 10;
+const WHITE_PAWN = 11;
+const BLACK_PAWN = 12;
+
 let player_white;
 let player_black;
 
@@ -84,9 +97,31 @@ function start_game() {
 
 function reset_game() {
     board = [];
-    for (let i = 0; i < 8 * 8; i++) {
+    board.push(BLACK_ROOK);
+    board.push(BLACK_KNIGHT);
+    board.push(BLACK_BISHOP);
+    board.push(BLACK_QUEEN);
+    board.push(BLACK_KING);
+    board.push(BLACK_BISHOP);
+    board.push(BLACK_KNIGHT);
+    board.push(BLACK_ROOK);
+    for (let i = 0; i < 8; i++) {
+        board.push(BLACK_PAWN);
+    }
+    for (let i = 0; i < 8 * 4; i++) {
         board.push(0);
     }
+    for (let i = 0; i < 8; i++) {
+        board.push(WHITE_PAWN);
+    }
+    board.push(WHITE_ROOK);
+    board.push(WHITE_KNIGHT);
+    board.push(WHITE_BISHOP);
+    board.push(WHITE_QUEEN);
+    board.push(WHITE_KING);
+    board.push(WHITE_BISHOP);
+    board.push(WHITE_KNIGHT);
+    board.push(WHITE_ROOK);
     send_board();
 }
 
