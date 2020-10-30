@@ -133,9 +133,29 @@ function left_click(e) {
         } else {
             for (let m of possible_moves) {
                 if (m.x == tile_x && m.y == tile_y) {
-                    socket.emit("send-move", {from: selected_pos, to: m, color: my_color});
+                    let selected_tile = gettile(selected_pos.x, selected_pos.y);
+                    selected_tile.amount_moves++;
                     possible_moves = [];
                     selected = false;
+                    if (selected_tile instanceof KingPiece) {
+                        if (m.x - selected_pos.x > 1) {
+                            socket.emit("send-castle", {
+                                    king: {from: selected_pos, to: m},
+                                    rook: {from: {x: selected_pos.x + 3, y: selected_pos.y}, to: {x: m.x - 1, y: m.y}},
+                                    color: my_color
+                            });
+                        } else if (m.x - selected_pos.x < -1) {
+                            socket.emit("send-castle", {
+                                    king: {from: selected_pos, to: m},
+                                    rook: {from: {x: selected_pos.x - 4, y: selected_pos.y}, to: {x: m.x + 1, y: m.y}},
+                                    color: my_color
+                            });
+                        } else {
+                            socket.emit("send-move", {from: selected_pos, to: m, color: my_color});
+                        }
+                    } else {
+                        socket.emit("send-move", {from: selected_pos, to: m, color: my_color});
+                    }
                     break;
                 }
             }
@@ -201,6 +221,18 @@ socket.on("make-move", (data) => {
     let from = data.from;
     let to = data.to;
     let tile = gettile(from.x, from.y);
+
+    if (tile instanceof PawnPiece) {
+        if (tile.color == "White") {
+            if (to.y == 0) {
+                tile = new QueenPiece(to.x, to.y, tile.color);
+            }
+        } else {
+            if (to.y == 7) {
+                tile = new QueenPiece(to.x, to.y, tile.color);
+            }
+        }
+    }
     board[to.x + to.y * 8] = tile;
     tile.x = to.x;
     tile.y = to.y;

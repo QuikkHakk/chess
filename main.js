@@ -67,6 +67,27 @@ io.on("connection", (socket) => {
             player_black.emit("set-move", true);
         }
     });
+    socket.on("send-castle", (data) => {
+        let color = data.color;
+        let king = data.king;
+        let rook = data.rook;
+
+        board[king.to.x + king.to.y * 8] = board[king.from.x + king.from.y * 8];
+        board[king.from.x + king.from.y * 8] = 0;
+
+        board[rook.to.x + rook.to.y * 8] = board[rook.from.x + rook.from.y * 8];
+        board[rook.from.x + rook.from.y * 8] = 0;
+
+        io.emit("make-move", {from: king.from, to: king.to});
+        io.emit("make-move", {from: rook.from, to: rook.to});
+        if (color == COLOR_BLACK) {
+            player_white.emit("set-move", true);
+            player_black.emit("set-move", false);
+        } else {
+            player_white.emit("set-move", false);
+            player_black.emit("set-move", true);
+        }
+    });
     
     socket.on('disconnect', () => {
         queue.splice(queue.indexOf(socket), 1);
