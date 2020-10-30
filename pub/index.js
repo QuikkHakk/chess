@@ -25,6 +25,7 @@ let my_color;
 
 let selected = false;
 let selected_pos = {x: 0, y: 0};
+let possible_moves = [];
 
 window.onload = function() {
     status_p = document.getElementById("status");
@@ -66,7 +67,27 @@ function loop() {
                     ctx.fillStyle = "#769656";
                 }
             }
-            ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);            
+            ctx.fillRect(
+                x * TILE_SIZE,
+                y * TILE_SIZE,
+                TILE_SIZE,
+                TILE_SIZE
+            );            
+
+            for (let move of possible_moves) {
+                if ((x + y) % 2 == 0) {
+                    ctx.fillStyle = "#D6D6BD";
+                } else {
+                    ctx.fillStyle = "#6A874D";
+                }
+                ctx.fillRect(
+                    move.x * TILE_SIZE + TILE_SIZE / 4,
+                    move.y * TILE_SIZE + TILE_SIZE / 4,
+                    TILE_SIZE / 2,
+                    TILE_SIZE / 2
+                );
+            }
+
             let tile_at = gettile(x, y);
             if (tile_at != null) {
                 tile_at.render();
@@ -108,11 +129,23 @@ function left_click(e) {
         if (hastile(tile_x, tile_y) && is_my_color(t)) {
             selected = true;
             selected_pos = {x: tile_x, y: tile_y};
+            possible_moves = t.possible_moves(board);
+        } else {
+            for (let m of possible_moves) {
+                if (m.x == tile_x && m.y == tile_y) {
+                    socket.emit("send-move", {from: selected_pos, to: m, color: my_color});
+                    possible_moves = [];
+                    selected = false;
+                    break;
+                }
+            }
         }
     }
 }
 
 socket.on("update-board", (data) => {
+    my_move = false;
+    is_player = false;
     board = [];
     for (let i = 0; i < data.board.length; i++) {
         let p = data.board[i];
@@ -162,6 +195,16 @@ socket.on("set-color", (color) => {
         status_p.innerText = "In queue";
         is_player = false;
     }
+});
+
+socket.on("make-move", (data) => {
+    let from = data.from;
+    let to = data.to;
+    let tile = gettile(from.x, from.y);
+    board[to.x + to.y * 8] = tile;
+    tile.x = to.x;
+    tile.y = to.y;
+    board[from.x + from.y * 8] = null;
 });
 
 socket.on("set-move", (b) => {

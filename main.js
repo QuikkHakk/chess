@@ -3,6 +3,9 @@ const app = express();
 const http = require("http").createServer(app);
 const io = require("socket.io")(http);
 
+const COLOR_WHITE = 1;
+const COLOR_BLACK = 2;
+
 const WHITE_KING = 1;
 const BLACK_KING = 2;
 const WHITE_QUEEN = 3;
@@ -33,6 +36,9 @@ app.get("/", (req, res) => {
 io.on("connection", (socket) => {
     queue_add(socket);
     console.log("queue: " + queue.length);
+    if (playing) {
+        socket.emit("update-board", {board: board});
+    }
 
     if (!playing && queue.length >= 2) {
         if (Math.round(Math.random()) == 1) {
@@ -44,6 +50,23 @@ io.on("connection", (socket) => {
         }
         start_game();
     }
+
+    socket.on("send-move", (data) => {
+        let color = data.color;
+        let from = data.from;
+        let to = data.to;
+        board[to.x + to.y * 8] = board[from.x + from.y * 8];
+        board[from.x + from.y * 8] = 0;
+
+        io.emit("make-move", {from: from, to: to});
+        if (color == COLOR_BLACK) {
+            player_white.emit("set-move", true);
+            player_black.emit("set-move", false);
+        } else {
+            player_white.emit("set-move", false);
+            player_black.emit("set-move", true);
+        }
+    });
     
     socket.on('disconnect', () => {
         queue.splice(queue.indexOf(socket), 1);

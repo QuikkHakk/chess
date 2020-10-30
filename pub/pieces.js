@@ -4,6 +4,7 @@ class Piece {
         this.y = y;
         this.color = color;
         this.image = load_image(img_name);
+        this.amount_moves = 0;
     }
 
     render() {
@@ -14,6 +15,10 @@ class Piece {
             TILE_SIZE,
             TILE_SIZE
         );
+    }
+
+    possible_moves(board) {
+        return [];
     }
 }
 
@@ -50,5 +55,29 @@ class KnightPiece extends Piece {
 class PawnPiece extends Piece {
     constructor(x, y, color) {
         super(x, y, color, color + "Pawn");
+    }
+    
+    possible_moves(board) {
+        let moves = [];
+        if (this.color == "White") {
+            if (!hastile(this.x, this.y - 1)) {
+               moves.push({x: this.x, y: this.y - 1}); 
+            }
+            if (this.amount_moves == 0) {
+                if (!hastile(this.x, this.y - 2)) {
+                   moves.push({x: this.x, y: this.y - 2}); 
+                }
+            }
+        } else {
+            if (!hastile(this.x, this.y + 1)) {
+               moves.push({x: this.x, y: this.y + 1}); 
+            }
+            if (this.amount_moves == 0) {
+                if (!hastile(this.x, this.y + 2)) {
+                   moves.push({x: this.x, y: this.y + 2}); 
+                }
+            }
+        }
+        return moves;
     }
 }
