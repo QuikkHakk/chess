@@ -35,7 +35,6 @@ io.on("connection", (socket) => {
     console.log("queue: " + queue.length);
 
     if (!playing && queue.length >= 2) {
-        start_game();
         if (Math.round(Math.random()) == 1) {
             set_white(queue.shift());
             set_black(queue.shift())
@@ -43,29 +42,30 @@ io.on("connection", (socket) => {
             set_black(queue.shift())
             set_white(queue.shift());
         }
+        start_game();
     }
     
     socket.on('disconnect', () => {
         queue.splice(queue.indexOf(socket), 1);
         console.log("queue: " + queue.length);
         if (socket == player_white) {
-            reset_game();
             if (queue.length > 0) {
                 set_white(player_black);
                 set_black(queue.shift())
-                playing = true;
+                start_game();
             } else {
                 queue_add(player_black);
+                reset_game();
                 playing = false;
             }
         } else if (socket == player_black) {
-            reset_game();
             if (queue.length > 0) {
                 set_black(player_white);
                 set_white(queue.shift());
-                playing = true;
+                start_game();
             } else {
                 queue_add(player_white);
+                reset_game();
                 playing = false;
             }
         }
@@ -93,6 +93,8 @@ function send_board() {
 function start_game() {
     playing = true;
     reset_game();
+    player_white.emit("set-move", true);
+    player_black.emit("set-move", false);
 }
 
 function reset_game() {
